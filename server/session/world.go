@@ -877,6 +877,14 @@ func (s *Session) playSound(pos mgl64.Vec3, t world.Sound, disableRelative bool)
 			Volume:    1,
 			Pitch:     1.0,
 		})
+	case sound.Raw:
+		s.writePacket(&packet.PlaySound{
+			SoundName: so.Name,
+			Position:  vec64To32(pos),
+			Volume:    so.Volume,
+			Pitch:     so.Pitch,
+		})
+		return
 	}
 	s.writePacket(pk)
 }

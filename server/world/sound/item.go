@@ -96,3 +96,12 @@ type FireCharge struct{ sound }
 
 // Totem is a sound played when a player uses a totem.
 type Totem struct{ sound }
+
+// Raw is a sound with an arbitrary name, volume, and pitch — for playing
+// sounds Dragonfly doesn't have a dedicated type for.
+type Raw struct {
+	Name          string
+	Volume, Pitch float32
+
+	sound
+}
