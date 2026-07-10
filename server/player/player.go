@@ -2930,9 +2930,6 @@ func (p *Player) SetScale(s float64) {
 
 // OnGround checks if the player is considered to be on the ground.
 func (p *Player) OnGround() bool {
-	if p.session() == session.Nop {
-		return p.mc.OnGround()
-	}
 	return p.onGround
 }
 
