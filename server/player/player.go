@@ -2495,6 +2495,14 @@ func (p *Player) Latency() time.Duration {
 }
 
 // Tick ticks the entity, performing actions such as checking if the player is still breaking a block.
+// BotMovementTick, when non-nil, is called instead of the default
+// MovementComputer-driven physics tick for players with no network session
+// (bots). It is responsible for updating the player's position, rotation and
+// velocity itself. This exists purely as a hook so that bot movement/physics
+// logic can live outside of this fork, in the same way bots.HandleBotDeath
+// and friends keep bot-specific behaviour out of dragonfly.
+var BotMovementTick func(p *Player)
+
 func (p *Player) Tick(tx *world.Tx, current int64) {
 	if p.Dead() {
 		return
@@ -2576,11 +2584,15 @@ func (p *Player) Tick(tx *world.Tx, current int64) {
 	p.prevWorld = tx.World()
 
 	if p.session() == session.Nop && !p.Immobile() {
-		m := p.mc.TickMovement(p, p.Position(), p.Velocity(), p.Rotation(), p.tx)
-		m.Send()
+		if BotMovementTick != nil {
+			BotMovementTick(p)
+		} else {
+			m := p.mc.TickMovement(p, p.Position(), p.Velocity(), p.Rotation(), p.tx)
+			m.Send()
 
-		p.data.Vel = m.Velocity()
-		p.Move(m.Position().Sub(p.Position()), 0, 0)
+			p.data.Vel = m.Velocity()
+			p.Move(m.Position().Sub(p.Position()), 0, 0)
+		}
 	} else {
 		p.data.Vel = mgl64.Vec3{}
 	}
