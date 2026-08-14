@@ -37,6 +37,7 @@ import (
 	"github.com/df-mc/dragonfly/server/world/sound"
 	"github.com/go-gl/mathgl/mgl64"
 	"github.com/google/uuid"
+	"github.com/sandertv/gophertunnel/minecraft/protocol"
 	"golang.org/x/text/language"
 )
 
@@ -179,6 +180,13 @@ func (p *Player) SelfSignedID() string {
 		return ""
 	}
 	return p.session().ClientData().SelfSignedID
+}
+
+func (p *Player) DeviceOS() protocol.DeviceOS {
+	if p.session() == session.Nop {
+		return protocol.DeviceUnknown
+	}
+	return p.session().ClientData().DeviceOS
 }
 
 // Addr returns the net.Addr of the Player. If the Player is not connected to a network session, nil is returned.
