@@ -510,6 +510,14 @@ func (s *Session) ViewParticle(pos mgl64.Vec3, p world.Particle) {
 			EventType: packet.LevelEventParticleLegacyEvent | 88,
 			Position:  vec64To32(pos),
 		})
+	case particle.Raw:
+		s.writePacket(&packet.SpawnParticleEffect{
+			Dimension:      0,
+			EntityUniqueID: -1,
+			Position:       vec64To32(pos),
+			ParticleName:   pa.Name,
+		})
+		return
 	}
 }
 
