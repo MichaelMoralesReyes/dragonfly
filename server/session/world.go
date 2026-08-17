@@ -928,6 +928,8 @@ func (s *Session) playSound(pos mgl64.Vec3, t world.Sound, disableRelative bool)
 			Volume:    1,
 			Pitch:     1.0,
 		})
+	case sound.Event:
+		pk.SoundType = so.Name
 	case sound.Raw:
 		s.writePacket(&packet.PlaySound{
 			SoundName: so.Name,
