@@ -1327,6 +1327,9 @@ func gameTypeFromMode(mode world.GameMode) int32 {
 	if mode.AllowsFlying() && mode.CreativeInventory() {
 		return packet.GameTypeCreative
 	}
+	if !mode.Visible() && !mode.HasCollision() {
+		return packet.GameTypeSpectator
+	}
 	return packet.GameTypeSurvival
 }
 
