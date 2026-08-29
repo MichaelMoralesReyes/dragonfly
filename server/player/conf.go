@@ -47,6 +47,14 @@ type Config struct {
 	FireTicks              int64
 	FallDistance           float64
 	Effects                []effect.Effect
+
+	// Sleeping and SleepPos let a Player be created already in the sleeping
+	// pose (see (*Player).SetSleepingPose), so the very first spawn packet
+	// sent to viewers already reflects it. Applying the pose only after the
+	// entity is added to the world leaves already-nearby viewers stuck with
+	// the standing skeleton they were first spawned with.
+	Sleeping bool
+	SleepPos cube.Pos
 }
 
 // Apply applies fields from a Config to a world.EntityData, filling out empty
@@ -87,6 +95,8 @@ func (cfg Config) Apply(data *world.EntityData) {
 		alwaysShowNameTag:   true,
 		fireTicks:           conf.FireTicks,
 		fallDistance:        conf.FallDistance,
+		sleeping:            conf.Sleeping,
+		sleepPos:            conf.SleepPos,
 	}
 	playerUUID := conf.UUID
 	pdata.portalTravel = &entity.PortalTravelComputer{
