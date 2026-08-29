@@ -3515,6 +3515,26 @@ func (p *Player) viewers() []world.Viewer {
 	return viewers
 }
 
+// ViewersExcludingSelf returns everyone currently viewing p, excluding p's
+// own session. Useful for animations like a fake/cancelled death where the
+// player's own client must never receive the packet — Bedrock clients
+// enter their built-in death-lock state upon receiving certain actor
+// events (e.g. Death) for their own controlled entity, independent of
+// actual health, and there's no way to release that state without a real
+// death/respawn packet handshake following it.
+func (p *Player) ViewersExcludingSelf() []world.Viewer {
+	viewers := p.tx.Viewers(p.Position())
+	self := world.Viewer(p.session())
+
+	out := make([]world.Viewer, 0, len(viewers))
+	for _, v := range viewers {
+		if v != self {
+			out = append(out, v)
+		}
+	}
+	return out
+}
+
 // withinChunkRadius checks if the position provided is within the chunk radius of the player.
 func (p *Player) withinChunkRadius(pos mgl64.Vec3) bool {
 	playerChunkX, playerChunkZ := int(p.Position().X())>>4, int(p.Position().Z())>>4
