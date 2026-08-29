@@ -1368,6 +1368,15 @@ func (p *Player) Sleeping() (cube.Pos, bool) {
 	return p.sleepPos, true
 }
 
+// SetSleepingPose forces the player's entity metadata to render in the sleeping pose at pos, without requiring
+// an actual bed block or going through the normal Sleep flow. Intended for NPC/corpse-style *Player entities
+// (e.g. graves) that never join through a real session and so have no bed to sleep in.
+func (p *Player) SetSleepingPose(pos cube.Pos) {
+	p.sleeping = true
+	p.sleepPos = pos
+	p.updateState()
+}
+
 // SendSleepingIndicator displays a notification to the player on the amount of sleeping players in the world.
 func (p *Player) SendSleepingIndicator(sleeping, max int) {
 	p.session().ViewSleepingPlayers(sleeping, max)
