@@ -17,13 +17,6 @@ import (
 	"github.com/go-gl/mathgl/mgl64"
 )
 
-// gameModeEntity is implemented by entities (namely *player.Player) that
-// expose their current world.GameMode, used to detect a fatal hit that a
-// game-specific handler already turned into a kill (spectator) itself.
-type gameModeEntity interface {
-	GameMode() world.GameMode
-}
-
 // ProjectileBehaviourConfig allows the configuration of projectiles. Calling
 // ProjectileBehaviourConfig.New() creates a ProjectileBehaviour using these
 // settings.
@@ -196,8 +189,10 @@ func (lt *ProjectileBehaviour) Tick(e *Ent, tx *world.Tx) *Movement {
 	for i := 0; i < lt.conf.ParticleCount; i++ {
 		tx.AddParticle(result.Position(), lt.conf.Particle)
 	}
+	if lt.conf.Sound != nil {
+		tx.PlaySound(result.Position(), lt.conf.Sound)
+	}
 
-	playHitSound := true
 	switch r := result.(type) {
 	case trace.EntityResult:
 		if lt.conf.Damage >= 0 {
@@ -206,30 +201,16 @@ func (lt *ProjectileBehaviour) Tick(e *Ent, tx *world.Tx) *Movement {
 		if DamageableEntity(r.Entity()) {
 			lt.collidedEntities = append(lt.collidedEntities, r.Entity().H())
 		}
-		// If the hit killed r.Entity() (a game-specific handler cancelled the
-		// normal death and switched it to spectator itself, as gamemodes like
-		// SG/practice do), skip the generic impact sound so it doesn't play
-		// over whatever kill sound/effect that handler already triggered.
-		if gm, ok := r.Entity().(gameModeEntity); ok && !gm.GameMode().AllowsTakingDamage() {
-			playHitSound = false
-		}
 	case trace.BlockResult:
 		bpos := r.BlockPosition()
 		if h, ok := tx.Block(bpos).(block.ProjectileHitter); ok {
 			h.ProjectileHit(bpos, tx, e, r.Face())
-		}
-		if lt.conf.Sound != nil {
-			tx.PlaySound(result.Position(), lt.conf.Sound)
 		}
 		if lt.conf.SurviveBlockCollision {
 			lt.hitBlockSurviving(e, r, m, tx)
 			return m
 		}
 		lt.close = true
-		playHitSound = false // already played above
-	}
-	if lt.conf.Sound != nil && playHitSound {
-		tx.PlaySound(result.Position(), lt.conf.Sound)
 	}
 	if lt.conf.Hit != nil {
 		lt.conf.Hit(e, tx, result)
