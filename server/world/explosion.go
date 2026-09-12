@@ -23,6 +23,11 @@ type EntityExplosionSource struct {
 	Entity Entity
 	// ExplosionSize is the size of the explosion. Defaults to 4 if 0.
 	ExplosionSize float64
+	// Owner is the entity ultimately responsible for the explosion, if any -
+	// for example the player who broke an end crystal. It is not necessarily
+	// Entity itself: Entity is what exploded, Owner is who caused it to.
+	// Left nil if the explosion can't be attributed to anyone.
+	Owner Entity
 }
 
 // Position ...
@@ -46,6 +51,10 @@ type BlockExplosionSource struct {
 	Pos cube.Pos
 	// ExplosionSize is the size of the explosion. Defaults to 4 if 0.
 	ExplosionSize float64
+	// Owner is the entity ultimately responsible for the explosion, if any -
+	// for example the player who detonated a fully-charged respawn anchor.
+	// Left nil if the explosion can't be attributed to anyone.
+	Owner Entity
 }
 
 // Position ...

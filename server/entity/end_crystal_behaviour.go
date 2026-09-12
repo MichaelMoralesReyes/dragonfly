@@ -38,11 +38,11 @@ func (endCrystalBehaviour) Tick(e *Ent, tx *world.Tx) *Movement {
 
 // Explode makes the End crystal explode itself when hit by another explosion,
 // causing a chain reaction.
-func (b endCrystalBehaviour) Explode(e *Ent, _ world.ExplosionSource, impact float64) {
+func (b endCrystalBehaviour) Explode(e *Ent, src world.ExplosionSource, impact float64) {
 	if impact <= 0 {
 		return
 	}
-	explodeEndCrystal(e, b.explosionSize)
+	explodeEndCrystal(e, b.explosionSize, explosionSourceOwner(src))
 }
 
 // Hurt makes the End crystal explode when damaged by any source, even by
@@ -53,7 +53,7 @@ func (b endCrystalBehaviour) Hurt(e *Ent, damage float64, src world.DamageSource
 		_ = e.Close()
 		return damage, true
 	}
-	explodeEndCrystal(e, b.explosionSize)
+	explodeEndCrystal(e, b.explosionSize, damageSourceOwner(src))
 	return damage, true
 }
 
@@ -71,7 +71,7 @@ func (b endCrystalBehaviour) BeamTarget() (cube.Pos, bool) {
 
 // explodeEndCrystal closes the End crystal and creates a non-incendiary
 // explosion at its base, if the crystal was not closed yet.
-func explodeEndCrystal(e *Ent, explosionSize float64) {
+func explodeEndCrystal(e *Ent, explosionSize float64, owner world.Entity) {
 	if _, ok := e.H().Entity(e.tx); !ok {
 		return
 	}
@@ -81,5 +81,28 @@ func explodeEndCrystal(e *Ent, explosionSize float64) {
 	}.Explode(e.tx, world.EntityExplosionSource{
 		Entity:        e,
 		ExplosionSize: explosionSize,
+		Owner:         owner,
 	})
+}
+
+func damageSourceOwner(src world.DamageSource) world.Entity {
+	switch s := src.(type) {
+	case AttackDamageSource:
+		return s.Attacker
+	case ProjectileDamageSource:
+		return s.Owner
+	default:
+		return nil
+	}
+}
+
+func explosionSourceOwner(src world.ExplosionSource) world.Entity {
+	switch s := src.(type) {
+	case world.EntityExplosionSource:
+		return s.Owner
+	case world.BlockExplosionSource:
+		return s.Owner
+	default:
+		return nil
+	}
 }
