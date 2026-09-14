@@ -131,6 +131,9 @@ var colours = [15]string{"1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", 
 
 // RemoveScoreboard ...
 func (s *Session) RemoveScoreboard() {
+	if s == Nop {
+		return
+	}
 	s.writePacket(&packet.RemoveObjective{ObjectiveName: *s.currentScoreboard.Load()})
 	var name string
 	var lines []string
