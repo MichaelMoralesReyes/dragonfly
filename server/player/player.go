@@ -430,6 +430,27 @@ func (p *Player) HideCoordinates() {
 	p.session().EnableCoordinates(false)
 }
 
+// SendTime sets the client-side time of day for the player.
+func (p *Player) SendTime(time int) {
+	if p.session() != session.Nop {
+		p.session().ViewTime(time)
+	}
+}
+
+// SendTimeCycle controls whether the daylight cycle progresses client-side for the player.
+func (p *Player) SendTimeCycle(doDayLightCycle bool) {
+	if p.session() != session.Nop {
+		p.session().ViewTimeCycle(doDayLightCycle)
+	}
+}
+
+// SendWeather sets the client-side weather for the player.
+func (p *Player) SendWeather(raining, thunder bool) {
+	if p.session() != session.Nop {
+		p.session().ViewWeather(raining, thunder)
+	}
+}
+
 // EnableInstantRespawn enables the vanilla instant respawn for the player.
 func (p *Player) EnableInstantRespawn() {
 	p.session().EnableInstantRespawn(true)
