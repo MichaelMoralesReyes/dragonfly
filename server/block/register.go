@@ -260,6 +260,9 @@ func init() {
 	registerAll(allShulkerBoxes())
 	registerAll(allWoodPressurePlates())
 	registerAll(allStonePressurePlates())
+	registerAll(allPolishedBlackstonePressurePlates())
+	registerAll(allLightWeightedPressurePlates())
+	registerAll(allHeavyWeightedPressurePlates())
 }
 
 func init() {
@@ -425,6 +428,9 @@ func init() {
 	world.RegisterItem(Stone{Smooth: true})
 	world.RegisterItem(Stone{})
 	world.RegisterItem(StonePressurePlate{})
+	world.RegisterItem(PolishedBlackstonePressurePlate{})
+	world.RegisterItem(LightWeightedPressurePlate{})
+	world.RegisterItem(HeavyWeightedPressurePlate{})
 	world.RegisterItem(String{})
 	world.RegisterItem(SugarCane{})
 	world.RegisterItem(Sulfur{})

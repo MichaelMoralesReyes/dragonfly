@@ -104,6 +104,7 @@ const (
 	hashGravel
 	hashGrindstone
 	hashHayBale
+	hashHeavyWeightedPressurePlate
 	hashHoneycomb
 	hashHopper
 	hashInfestedCobblestone
@@ -127,6 +128,7 @@ const (
 	hashLectern
 	hashLever
 	hashLight
+	hashLightWeightedPressurePlate
 	hashLilyPad
 	hashLitPumpkin
 	hashLog
@@ -155,6 +157,7 @@ const (
 	hashPlanks
 	hashPodzol
 	hashPolishedBlackstoneBrick
+	hashPolishedBlackstonePressurePlate
 	hashPolishedCinnabar
 	hashPolishedSulfur
 	hashPolishedTuff
@@ -645,6 +648,10 @@ func (h HayBale) Hash() (uint64, uint64) {
 	return hashHayBale, uint64(h.Axis)
 }
 
+func (p HeavyWeightedPressurePlate) Hash() (uint64, uint64) {
+	return hashHeavyWeightedPressurePlate, uint64(boolByte(p.Powered))
+}
+
 func (Honeycomb) Hash() (uint64, uint64) {
 	return hashHoneycomb, 0
 }
@@ -735,6 +742,10 @@ func (l Lever) Hash() (uint64, uint64) {
 
 func (l Light) Hash() (uint64, uint64) {
 	return hashLight, uint64(l.Level)
+}
+
+func (p LightWeightedPressurePlate) Hash() (uint64, uint64) {
+	return hashLightWeightedPressurePlate, uint64(boolByte(p.Powered))
 }
 
 func (LilyPad) Hash() (uint64, uint64) {
@@ -847,6 +858,10 @@ func (Podzol) Hash() (uint64, uint64) {
 
 func (b PolishedBlackstoneBrick) Hash() (uint64, uint64) {
 	return hashPolishedBlackstoneBrick, uint64(boolByte(b.Cracked))
+}
+
+func (p PolishedBlackstonePressurePlate) Hash() (uint64, uint64) {
+	return hashPolishedBlackstonePressurePlate, uint64(boolByte(p.Powered))
 }
 
 func (PolishedCinnabar) Hash() (uint64, uint64) {

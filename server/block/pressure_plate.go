@@ -13,10 +13,16 @@ import (
 )
 
 var (
-	_ EntityStepper        = WoodPressurePlate{}
+	_ EntityStepper         = WoodPressurePlate{}
 	_ world.ScheduledTicker = WoodPressurePlate{}
-	_ EntityStepper        = StonePressurePlate{}
+	_ EntityStepper         = StonePressurePlate{}
 	_ world.ScheduledTicker = StonePressurePlate{}
+	_ EntityStepper         = PolishedBlackstonePressurePlate{}
+	_ world.ScheduledTicker = PolishedBlackstonePressurePlate{}
+	_ EntityStepper         = LightWeightedPressurePlate{}
+	_ world.ScheduledTicker = LightWeightedPressurePlate{}
+	_ EntityStepper         = HeavyWeightedPressurePlate{}
+	_ world.ScheduledTicker = HeavyWeightedPressurePlate{}
 )
 
 // WoodPressurePlate is a wooden pressure plate that provides redstone power and visual/audio feedback when stepped on.
@@ -269,3 +275,343 @@ func allStonePressurePlates() []world.Block {
 		StonePressurePlate{Powered: true},
 	}
 }
+
+// PolishedBlackstonePressurePlate is a polished blackstone pressure plate.
+type PolishedBlackstonePressurePlate struct {
+	transparent
+	flowingWaterDisplacer
+	bassDrum
+
+	// Powered is whether the pressure plate is currently pressed down.
+	Powered bool
+}
+
+// Model ...
+func (p PolishedBlackstonePressurePlate) Model() world.BlockModel {
+	return model.PressurePlate{Powered: p.Powered}
+}
+
+// SideClosed ...
+func (PolishedBlackstonePressurePlate) SideClosed(cube.Pos, cube.Pos, *world.Tx) bool {
+	return false
+}
+
+// BreakInfo ...
+func (p PolishedBlackstonePressurePlate) BreakInfo() BreakInfo {
+	return newBreakInfo(0.5, pickaxeHarvestable, pickaxeEffective, oneOf(PolishedBlackstonePressurePlate{}))
+}
+
+// RedstonePower ...
+func (p PolishedBlackstonePressurePlate) RedstonePower(cube.Pos, *world.Tx, cube.Face) int {
+	if p.Powered {
+		return 15
+	}
+	return 0
+}
+
+// RedstoneStrongPower ...
+func (p PolishedBlackstonePressurePlate) RedstoneStrongPower(_ cube.Pos, _ *world.Tx, face cube.Face) int {
+	if p.Powered && face == cube.FaceDown {
+		return 15
+	}
+	return 0
+}
+
+// EntityStepOn ...
+func (p PolishedBlackstonePressurePlate) EntityStepOn(pos cube.Pos, tx *world.Tx, _ world.Entity) {
+	if !p.Powered {
+		p.Powered = true
+		tx.SetBlock(pos, p, nil)
+		tx.PlaySound(pos.Vec3Centre(), sound.PressurePlateClickOn{})
+	}
+	tx.ScheduleBlockUpdate(pos, p, time.Millisecond*500)
+}
+
+// ScheduledTick ...
+func (p PolishedBlackstonePressurePlate) ScheduledTick(pos cube.Pos, tx *world.Tx, _ *rand.Rand) {
+	if !p.Powered {
+		return
+	}
+	detectBox := cube.Box(1.0/16.0, 0, 1.0/16.0, 15.0/16.0, 0.25, 15.0/16.0).Translate(pos.Vec3())
+	for e := range tx.EntitiesWithin(detectBox) {
+		if detectBox.Vec3Within(e.Position()) {
+			tx.ScheduleBlockUpdate(pos, p, time.Millisecond*500)
+			return
+		}
+	}
+	p.Powered = false
+	tx.SetBlock(pos, p, nil)
+	tx.PlaySound(pos.Vec3Centre(), sound.PressurePlateClickOff{})
+}
+
+// NeighbourUpdateTick ...
+func (p PolishedBlackstonePressurePlate) NeighbourUpdateTick(pos, _ cube.Pos, tx *world.Tx) {
+	supportPos := pos.Side(cube.FaceDown)
+	if !tx.Block(supportPos).Model().FaceSolid(supportPos, cube.FaceUp, tx) {
+		breakBlock(p, pos, tx)
+	}
+}
+
+// UseOnBlock ...
+func (p PolishedBlackstonePressurePlate) UseOnBlock(pos cube.Pos, face cube.Face, _ mgl64.Vec3, tx *world.Tx, user item.User, ctx *item.UseContext) bool {
+	pos, face, used := firstReplaceable(tx, pos, face, p)
+	if !used || face != cube.FaceUp {
+		return false
+	}
+	supportPos := pos.Side(cube.FaceDown)
+	if !tx.Block(supportPos).Model().FaceSolid(supportPos, cube.FaceUp, tx) {
+		return false
+	}
+	p.Powered = false
+	place(tx, pos, p, user, ctx)
+	return placed(ctx)
+}
+
+// EncodeItem ...
+func (PolishedBlackstonePressurePlate) EncodeItem() (name string, meta int16) {
+	return "minecraft:polished_blackstone_pressure_plate", 0
+}
+
+// EncodeBlock ...
+func (p PolishedBlackstonePressurePlate) EncodeBlock() (name string, properties map[string]any) {
+	signal := int32(0)
+	if p.Powered {
+		signal = 15
+	}
+	return "minecraft:polished_blackstone_pressure_plate", map[string]any{"redstone_signal": signal}
+}
+
+// allPolishedBlackstonePressurePlates returns all polished blackstone pressure plate variants.
+func allPolishedBlackstonePressurePlates() []world.Block {
+	return []world.Block{
+		PolishedBlackstonePressurePlate{Powered: false},
+		PolishedBlackstonePressurePlate{Powered: true},
+	}
+}
+
+// LightWeightedPressurePlate is a gold pressure plate (light weighted) that activates when any entity steps on it.
+type LightWeightedPressurePlate struct {
+	transparent
+	flowingWaterDisplacer
+	bassDrum
+
+	// Powered is whether the pressure plate is currently pressed down.
+	Powered bool
+}
+
+// Model ...
+func (p LightWeightedPressurePlate) Model() world.BlockModel {
+	return model.PressurePlate{Powered: p.Powered}
+}
+
+// SideClosed ...
+func (LightWeightedPressurePlate) SideClosed(cube.Pos, cube.Pos, *world.Tx) bool {
+	return false
+}
+
+// BreakInfo ...
+func (p LightWeightedPressurePlate) BreakInfo() BreakInfo {
+	return newBreakInfo(0.5, pickaxeHarvestable, pickaxeEffective, oneOf(LightWeightedPressurePlate{}))
+}
+
+// RedstonePower ...
+func (p LightWeightedPressurePlate) RedstonePower(cube.Pos, *world.Tx, cube.Face) int {
+	if p.Powered {
+		return 15
+	}
+	return 0
+}
+
+// RedstoneStrongPower ...
+func (p LightWeightedPressurePlate) RedstoneStrongPower(_ cube.Pos, _ *world.Tx, face cube.Face) int {
+	if p.Powered && face == cube.FaceDown {
+		return 15
+	}
+	return 0
+}
+
+// EntityStepOn ...
+func (p LightWeightedPressurePlate) EntityStepOn(pos cube.Pos, tx *world.Tx, _ world.Entity) {
+	if !p.Powered {
+		p.Powered = true
+		tx.SetBlock(pos, p, nil)
+		tx.PlaySound(pos.Vec3Centre(), sound.PressurePlateClickOn{})
+	}
+	tx.ScheduleBlockUpdate(pos, p, time.Millisecond*500)
+}
+
+// ScheduledTick ...
+func (p LightWeightedPressurePlate) ScheduledTick(pos cube.Pos, tx *world.Tx, _ *rand.Rand) {
+	if !p.Powered {
+		return
+	}
+	detectBox := cube.Box(1.0/16.0, 0, 1.0/16.0, 15.0/16.0, 0.25, 15.0/16.0).Translate(pos.Vec3())
+	for e := range tx.EntitiesWithin(detectBox) {
+		if detectBox.Vec3Within(e.Position()) {
+			tx.ScheduleBlockUpdate(pos, p, time.Millisecond*500)
+			return
+		}
+	}
+	p.Powered = false
+	tx.SetBlock(pos, p, nil)
+	tx.PlaySound(pos.Vec3Centre(), sound.PressurePlateClickOff{})
+}
+
+// NeighbourUpdateTick ...
+func (p LightWeightedPressurePlate) NeighbourUpdateTick(pos, _ cube.Pos, tx *world.Tx) {
+	supportPos := pos.Side(cube.FaceDown)
+	if !tx.Block(supportPos).Model().FaceSolid(supportPos, cube.FaceUp, tx) {
+		breakBlock(p, pos, tx)
+	}
+}
+
+// UseOnBlock ...
+func (p LightWeightedPressurePlate) UseOnBlock(pos cube.Pos, face cube.Face, _ mgl64.Vec3, tx *world.Tx, user item.User, ctx *item.UseContext) bool {
+	pos, face, used := firstReplaceable(tx, pos, face, p)
+	if !used || face != cube.FaceUp {
+		return false
+	}
+	supportPos := pos.Side(cube.FaceDown)
+	if !tx.Block(supportPos).Model().FaceSolid(supportPos, cube.FaceUp, tx) {
+		return false
+	}
+	p.Powered = false
+	place(tx, pos, p, user, ctx)
+	return placed(ctx)
+}
+
+// EncodeItem ...
+func (LightWeightedPressurePlate) EncodeItem() (name string, meta int16) {
+	return "minecraft:light_weighted_pressure_plate", 0
+}
+
+// EncodeBlock ...
+func (p LightWeightedPressurePlate) EncodeBlock() (name string, properties map[string]any) {
+	signal := int32(0)
+	if p.Powered {
+		signal = 15
+	}
+	return "minecraft:light_weighted_pressure_plate", map[string]any{"redstone_signal": signal}
+}
+
+// allLightWeightedPressurePlates returns all light weighted (gold) pressure plate variants.
+func allLightWeightedPressurePlates() []world.Block {
+	return []world.Block{
+		LightWeightedPressurePlate{Powered: false},
+		LightWeightedPressurePlate{Powered: true},
+	}
+}
+
+// HeavyWeightedPressurePlate is an iron pressure plate (heavy weighted) that activates when any entity steps on it.
+type HeavyWeightedPressurePlate struct {
+	transparent
+	flowingWaterDisplacer
+	bassDrum
+
+	// Powered is whether the pressure plate is currently pressed down.
+	Powered bool
+}
+
+// Model ...
+func (p HeavyWeightedPressurePlate) Model() world.BlockModel {
+	return model.PressurePlate{Powered: p.Powered}
+}
+
+// SideClosed ...
+func (HeavyWeightedPressurePlate) SideClosed(cube.Pos, cube.Pos, *world.Tx) bool {
+	return false
+}
+
+// BreakInfo ...
+func (p HeavyWeightedPressurePlate) BreakInfo() BreakInfo {
+	return newBreakInfo(0.5, pickaxeHarvestable, pickaxeEffective, oneOf(HeavyWeightedPressurePlate{}))
+}
+
+// RedstonePower ...
+func (p HeavyWeightedPressurePlate) RedstonePower(cube.Pos, *world.Tx, cube.Face) int {
+	if p.Powered {
+		return 15
+	}
+	return 0
+}
+
+// RedstoneStrongPower ...
+func (p HeavyWeightedPressurePlate) RedstoneStrongPower(_ cube.Pos, _ *world.Tx, face cube.Face) int {
+	if p.Powered && face == cube.FaceDown {
+		return 15
+	}
+	return 0
+}
+
+// EntityStepOn ...
+func (p HeavyWeightedPressurePlate) EntityStepOn(pos cube.Pos, tx *world.Tx, _ world.Entity) {
+	if !p.Powered {
+		p.Powered = true
+		tx.SetBlock(pos, p, nil)
+		tx.PlaySound(pos.Vec3Centre(), sound.PressurePlateClickOn{})
+	}
+	tx.ScheduleBlockUpdate(pos, p, time.Millisecond*500)
+}
+
+// ScheduledTick ...
+func (p HeavyWeightedPressurePlate) ScheduledTick(pos cube.Pos, tx *world.Tx, _ *rand.Rand) {
+	if !p.Powered {
+		return
+	}
+	detectBox := cube.Box(1.0/16.0, 0, 1.0/16.0, 15.0/16.0, 0.25, 15.0/16.0).Translate(pos.Vec3())
+	for e := range tx.EntitiesWithin(detectBox) {
+		if detectBox.Vec3Within(e.Position()) {
+			tx.ScheduleBlockUpdate(pos, p, time.Millisecond*500)
+			return
+		}
+	}
+	p.Powered = false
+	tx.SetBlock(pos, p, nil)
+	tx.PlaySound(pos.Vec3Centre(), sound.PressurePlateClickOff{})
+}
+
+// NeighbourUpdateTick ...
+func (p HeavyWeightedPressurePlate) NeighbourUpdateTick(pos, _ cube.Pos, tx *world.Tx) {
+	supportPos := pos.Side(cube.FaceDown)
+	if !tx.Block(supportPos).Model().FaceSolid(supportPos, cube.FaceUp, tx) {
+		breakBlock(p, pos, tx)
+	}
+}
+
+// UseOnBlock ...
+func (p HeavyWeightedPressurePlate) UseOnBlock(pos cube.Pos, face cube.Face, _ mgl64.Vec3, tx *world.Tx, user item.User, ctx *item.UseContext) bool {
+	pos, face, used := firstReplaceable(tx, pos, face, p)
+	if !used || face != cube.FaceUp {
+		return false
+	}
+	supportPos := pos.Side(cube.FaceDown)
+	if !tx.Block(supportPos).Model().FaceSolid(supportPos, cube.FaceUp, tx) {
+		return false
+	}
+	p.Powered = false
+	place(tx, pos, p, user, ctx)
+	return placed(ctx)
+}
+
+// EncodeItem ...
+func (HeavyWeightedPressurePlate) EncodeItem() (name string, meta int16) {
+	return "minecraft:heavy_weighted_pressure_plate", 0
+}
+
+// EncodeBlock ...
+func (p HeavyWeightedPressurePlate) EncodeBlock() (name string, properties map[string]any) {
+	signal := int32(0)
+	if p.Powered {
+		signal = 15
+	}
+	return "minecraft:heavy_weighted_pressure_plate", map[string]any{"redstone_signal": signal}
+}
+
+// allHeavyWeightedPressurePlates returns all heavy weighted (iron) pressure plate variants.
+func allHeavyWeightedPressurePlates() []world.Block {
+	return []world.Block{
+		HeavyWeightedPressurePlate{Powered: false},
+		HeavyWeightedPressurePlate{Powered: true},
+	}
+}
+
