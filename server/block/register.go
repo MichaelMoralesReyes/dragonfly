@@ -258,6 +258,8 @@ func init() {
 	registerAll(allCopperTorches())
 	registerAll(allCopperTrapdoors())
 	registerAll(allShulkerBoxes())
+	registerAll(allWoodPressurePlates())
+	registerAll(allStonePressurePlates())
 }
 
 func init() {
@@ -422,6 +424,7 @@ func init() {
 	world.RegisterItem(Stonecutter{})
 	world.RegisterItem(Stone{Smooth: true})
 	world.RegisterItem(Stone{})
+	world.RegisterItem(StonePressurePlate{})
 	world.RegisterItem(String{})
 	world.RegisterItem(SugarCane{})
 	world.RegisterItem(Sulfur{})
@@ -492,6 +495,7 @@ func init() {
 		world.RegisterItem(WoodFenceGate{Wood: w})
 		world.RegisterItem(WoodFence{Wood: w})
 		world.RegisterItem(WoodTrapdoor{Wood: w})
+		world.RegisterItem(WoodPressurePlate{Wood: w})
 	}
 	world.RegisterItem(Leaves{Type: AzaleaLeaves(), Persistent: true})
 	world.RegisterItem(Leaves{Type: FloweringAzaleaLeaves(), Persistent: true})

@@ -61,3 +61,13 @@ type thin struct{}
 func (thin) Model() world.BlockModel {
 	return model.Thin{}
 }
+
+// pressurePlate represents a block that has a model of a pressure plate.
+type pressurePlate struct {
+	Powered bool
+}
+
+// Model ...
+func (p pressurePlate) Model() world.BlockModel {
+	return model.PressurePlate{Powered: p.Powered}
+}

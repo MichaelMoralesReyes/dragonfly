@@ -203,6 +203,7 @@ const (
 	hashStairs
 	hashStone
 	hashStoneBricks
+	hashStonePressurePlate
 	hashStonecutter
 	hashString
 	hashSugarCane
@@ -222,6 +223,7 @@ const (
 	hashWoodDoor
 	hashWoodFence
 	hashWoodFenceGate
+	hashWoodPressurePlate
 	hashWoodTrapdoor
 	hashWool
 	hashCustomBlockBase
@@ -1039,6 +1041,10 @@ func (s StoneBricks) Hash() (uint64, uint64) {
 	return hashStoneBricks, uint64(s.Type.Uint8())
 }
 
+func (p StonePressurePlate) Hash() (uint64, uint64) {
+	return hashStonePressurePlate, uint64(boolByte(p.Powered))
+}
+
 func (s Stonecutter) Hash() (uint64, uint64) {
 	return hashStonecutter, uint64(s.Facing)
 }
@@ -1113,6 +1119,10 @@ func (w WoodFence) Hash() (uint64, uint64) {
 
 func (f WoodFenceGate) Hash() (uint64, uint64) {
 	return hashWoodFenceGate, uint64(f.Wood.Uint8()) | uint64(f.Facing)<<4 | uint64(boolByte(f.Open))<<6 | uint64(boolByte(f.Lowered))<<7
+}
+
+func (p WoodPressurePlate) Hash() (uint64, uint64) {
+	return hashWoodPressurePlate, uint64(p.Wood.Uint8()) | uint64(boolByte(p.Powered))<<4
 }
 
 func (t WoodTrapdoor) Hash() (uint64, uint64) {

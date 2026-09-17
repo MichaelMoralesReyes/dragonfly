@@ -884,6 +884,10 @@ func (s *Session) playSound(pos mgl64.Vec3, t world.Sound, disableRelative bool)
 		pk.SoundType = packet.SoundEventPowerOn
 	case sound.PowerOff:
 		pk.SoundType = packet.SoundEventPowerOff
+	case sound.PressurePlateClickOn:
+		pk.SoundType = packet.SoundEventPressurePlateClickOn
+	case sound.PressurePlateClickOff:
+		pk.SoundType = packet.SoundEventPressurePlateClickOff
 	case sound.LecternBookPlace:
 		pk.SoundType = packet.SoundEventLecternBookPlace
 	case sound.Totem:

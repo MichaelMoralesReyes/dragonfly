@@ -197,6 +197,12 @@ type PowerOn struct{ sound }
 // PowerOff is a sound played when a redstone component is powered off.
 type PowerOff struct{ sound }
 
+// PressurePlateClickOn is a sound played when a pressure plate is pressed.
+type PressurePlateClickOn struct{ sound }
+
+// PressurePlateClickOff is a sound played when a pressure plate is unpressed.
+type PressurePlateClickOff struct{ sound }
+
 // LecternBookPlace is a sound played when a book is placed in a lectern.
 type LecternBookPlace struct{ sound }
 
