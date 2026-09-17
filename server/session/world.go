@@ -248,11 +248,6 @@ func entityOffset(e world.Entity) mgl64.Vec3 {
 	return mgl64.Vec3{}
 }
 
-// ViewTime ...
-func (s *Session) ViewTime(time int) {
-	s.writePacket(&packet.SetTime{Time: int32(time)})
-}
-
 // ViewTimeCycle ...
 func (s *Session) ViewTimeCycle(doDayLightCycle bool) {
 	s.sendGameRules([]protocol.GameRule{{Name: "dodaylightcycle", Value: doDayLightCycle}})
@@ -1380,6 +1375,20 @@ func (s *Session) ViewWorldSpawn(pos cube.Pos) {
 		Dimension:     packet.DimensionOverworld,
 		SpawnPosition: blockPos,
 	})
+}
+
+// ViewTime ...
+func (s *Session) ViewTime(time int) {
+	if s.customTime.Load() {
+		return
+	}
+	s.writePacket(&packet.SetTime{Time: int32(time)})
+}
+
+// SendTime sets the time specifically for this session and sets whether it is a custom override.
+func (s *Session) SendTime(time int, custom bool) {
+	s.customTime.Store(custom)
+	s.writePacket(&packet.SetTime{Time: int32(time)})
 }
 
 // ViewWeather ...

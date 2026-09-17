@@ -430,10 +430,14 @@ func (p *Player) HideCoordinates() {
 	p.session().EnableCoordinates(false)
 }
 
-// SendTime sets the client-side time of day for the player.
-func (p *Player) SendTime(time int) {
+// SendTime sets the client-side time of day for the player. If custom is true, periodic world time updates won't override it.
+func (p *Player) SendTime(time int, custom ...bool) {
 	if p.session() != session.Nop {
-		p.session().ViewTime(time)
+		isCustom := true
+		if len(custom) > 0 {
+			isCustom = custom[0]
+		}
+		p.session().SendTime(time, isCustom)
 	}
 }
 
