@@ -69,6 +69,11 @@ func (b endCrystalBehaviour) BeamTarget() (cube.Pos, bool) {
 	return b.beamTarget, b.hasBeamTarget
 }
 
+// EndCrystalExploded, if set, is called every time an End crystal actually
+// detonates (regardless of whether the explosion damages/kills anyone),
+// letting callers tally a precise "crystals exploded" stat per owner.
+var EndCrystalExploded func(owner world.Entity)
+
 // explodeEndCrystal closes the End crystal and creates a non-incendiary
 // explosion at its base, if the crystal was not closed yet.
 func explodeEndCrystal(e *Ent, explosionSize float64, owner world.Entity) {
@@ -76,6 +81,9 @@ func explodeEndCrystal(e *Ent, explosionSize float64, owner world.Entity) {
 		return
 	}
 	_ = e.Close()
+	if EndCrystalExploded != nil {
+		EndCrystalExploded(owner)
+	}
 	block.ExplosionConfig{
 		SuppressUnderwaterImpact: true,
 	}.Explode(e.tx, world.EntityExplosionSource{
