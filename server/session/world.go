@@ -1384,6 +1384,13 @@ func (s *Session) ViewWorldSpawn(pos cube.Pos) {
 
 // ViewWeather ...
 func (s *Session) ViewWeather(raining, thunder bool) {
+	if s.customWeather.Load() {
+		return
+	}
+	s.sendWeatherPackets(raining, thunder)
+}
+
+func (s *Session) sendWeatherPackets(raining, thunder bool) {
 	pk := &packet.LevelEvent{
 		EventType: packet.LevelEventStopRaining,
 	}
@@ -1399,6 +1406,12 @@ func (s *Session) ViewWeather(raining, thunder bool) {
 		pk.EventType, pk.EventData = packet.LevelEventStartThunderstorm, int32(rand.IntN(50000)+10000)
 	}
 	s.writePacket(pk)
+}
+
+// SendWeather sets the weather specifically for this session and sets whether it is a custom override.
+func (s *Session) SendWeather(raining, thunder bool, custom bool) {
+	s.customWeather.Store(custom)
+	s.sendWeatherPackets(raining, thunder)
 }
 
 // ViewEntityWake ...

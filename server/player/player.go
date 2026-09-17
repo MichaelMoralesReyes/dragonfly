@@ -444,10 +444,14 @@ func (p *Player) SendTimeCycle(doDayLightCycle bool) {
 	}
 }
 
-// SendWeather sets the client-side weather for the player.
-func (p *Player) SendWeather(raining, thunder bool) {
+// SendWeather sets the client-side weather for the player. If custom is true, periodic world weather updates won't override it.
+func (p *Player) SendWeather(raining, thunder bool, custom ...bool) {
 	if p.session() != session.Nop {
-		p.session().ViewWeather(raining, thunder)
+		isCustom := true
+		if len(custom) > 0 {
+			isCustom = custom[0]
+		}
+		p.session().SendWeather(raining, thunder, isCustom)
 	}
 }
 

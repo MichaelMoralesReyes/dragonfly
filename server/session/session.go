@@ -80,6 +80,7 @@ type Session struct {
 	swingingArm                    atomic.Bool
 	changingSlot                   atomic.Bool
 	changingDimension              atomic.Bool
+	customWeather                  atomic.Bool
 	moving                         bool
 
 	lastChunkPos world.ChunkPos
