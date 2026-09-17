@@ -11,6 +11,12 @@ import (
 // Bow is a ranged weapon that fires arrows.
 type Bow struct{}
 
+// BowArrowFired, if set, is called every time a Bow actually looses an
+// arrow (i.e. after all of the charge-time/force/ammo checks in Release
+// pass), so callers get an exact 1:1 count of real shots instead of raw
+// release attempts.
+var BowArrowFired func(releaser Releaser)
+
 // MaxCount always returns 1.
 func (Bow) MaxCount() int {
 	return 1
@@ -91,6 +97,9 @@ func (Bow) Release(releaser Releaser, tx *world.Tx, ctx *UseContext, duration ti
 		PunchLevel:          punchLevel,
 		Tip:                 tip,
 	}))
+	if BowArrowFired != nil {
+		BowArrowFired(releaser)
+	}
 	if f, ok := projectile.(interface{ SetOnFire(duration time.Duration) }); ok {
 		f.SetOnFire(burnDuration)
 	}
