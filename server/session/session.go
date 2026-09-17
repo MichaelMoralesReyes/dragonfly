@@ -82,6 +82,7 @@ type Session struct {
 	changingDimension              atomic.Bool
 	customWeather                  atomic.Bool
 	customTime                     atomic.Bool
+	customContainerClose           atomic.Pointer[func()]
 	moving                         bool
 
 	lastChunkPos world.ChunkPos
@@ -109,6 +110,19 @@ type Session struct {
 	closeBackground chan struct{}
 
 	br world.BlockRegistry
+}
+
+// SetContainerCloseCallback registers fn to run exactly once, the next time
+// this session's currently-open container is closed by the client. It is
+// cleared automatically once fired, or by a later call to
+// SetContainerCloseCallback/ClearContainerCloseCallback.
+func (s *Session) SetContainerCloseCallback(fn func()) {
+	s.customContainerClose.Store(&fn)
+}
+
+// ClearContainerCloseCallback cancels a pending SetContainerCloseCallback, if any.
+func (s *Session) ClearContainerCloseCallback() {
+	s.customContainerClose.Store(nil)
 }
 
 // debugShapeUpdate represents a pending debug shape mutation. If shape is nil, the update removes the
