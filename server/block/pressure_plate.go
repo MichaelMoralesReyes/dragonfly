@@ -13,15 +13,15 @@ import (
 )
 
 var (
-	_ EntityStepper         = WoodPressurePlate{}
+	_ EntityInsider         = WoodPressurePlate{}
 	_ world.ScheduledTicker = WoodPressurePlate{}
-	_ EntityStepper         = StonePressurePlate{}
+	_ EntityInsider         = StonePressurePlate{}
 	_ world.ScheduledTicker = StonePressurePlate{}
-	_ EntityStepper         = PolishedBlackstonePressurePlate{}
+	_ EntityInsider         = PolishedBlackstonePressurePlate{}
 	_ world.ScheduledTicker = PolishedBlackstonePressurePlate{}
-	_ EntityStepper         = LightWeightedPressurePlate{}
+	_ EntityInsider         = LightWeightedPressurePlate{}
 	_ world.ScheduledTicker = LightWeightedPressurePlate{}
-	_ EntityStepper         = HeavyWeightedPressurePlate{}
+	_ EntityInsider         = HeavyWeightedPressurePlate{}
 	_ world.ScheduledTicker = HeavyWeightedPressurePlate{}
 )
 
@@ -84,14 +84,14 @@ func (p WoodPressurePlate) RedstoneStrongPower(_ cube.Pos, _ *world.Tx, face cub
 	return 0
 }
 
-// EntityStepOn ...
-func (p WoodPressurePlate) EntityStepOn(pos cube.Pos, tx *world.Tx, _ world.Entity) {
+// EntityInside ...
+func (p WoodPressurePlate) EntityInside(pos cube.Pos, tx *world.Tx, _ world.Entity) {
 	if !p.Powered {
 		p.Powered = true
 		tx.SetBlock(pos, p, nil)
 		tx.PlaySound(pos.Vec3Centre(), sound.PressurePlateClickOn{})
+		tx.ScheduleBlockUpdate(pos, p, time.Millisecond*500)
 	}
-	tx.ScheduleBlockUpdate(pos, p, time.Millisecond*500)
 }
 
 // ScheduledTick ...
@@ -204,14 +204,14 @@ func (p StonePressurePlate) RedstoneStrongPower(_ cube.Pos, _ *world.Tx, face cu
 	return 0
 }
 
-// EntityStepOn ...
-func (p StonePressurePlate) EntityStepOn(pos cube.Pos, tx *world.Tx, _ world.Entity) {
+// EntityInside ...
+func (p StonePressurePlate) EntityInside(pos cube.Pos, tx *world.Tx, _ world.Entity) {
 	if !p.Powered {
 		p.Powered = true
 		tx.SetBlock(pos, p, nil)
 		tx.PlaySound(pos.Vec3Centre(), sound.PressurePlateClickOn{})
+		tx.ScheduleBlockUpdate(pos, p, time.Millisecond*500)
 	}
-	tx.ScheduleBlockUpdate(pos, p, time.Millisecond*500)
 }
 
 // ScheduledTick ...
@@ -317,14 +317,14 @@ func (p PolishedBlackstonePressurePlate) RedstoneStrongPower(_ cube.Pos, _ *worl
 	return 0
 }
 
-// EntityStepOn ...
-func (p PolishedBlackstonePressurePlate) EntityStepOn(pos cube.Pos, tx *world.Tx, _ world.Entity) {
+// EntityInside ...
+func (p PolishedBlackstonePressurePlate) EntityInside(pos cube.Pos, tx *world.Tx, _ world.Entity) {
 	if !p.Powered {
 		p.Powered = true
 		tx.SetBlock(pos, p, nil)
 		tx.PlaySound(pos.Vec3Centre(), sound.PressurePlateClickOn{})
+		tx.ScheduleBlockUpdate(pos, p, time.Millisecond*500)
 	}
-	tx.ScheduleBlockUpdate(pos, p, time.Millisecond*500)
 }
 
 // ScheduledTick ...
@@ -430,14 +430,14 @@ func (p LightWeightedPressurePlate) RedstoneStrongPower(_ cube.Pos, _ *world.Tx,
 	return 0
 }
 
-// EntityStepOn ...
-func (p LightWeightedPressurePlate) EntityStepOn(pos cube.Pos, tx *world.Tx, _ world.Entity) {
+// EntityInside ...
+func (p LightWeightedPressurePlate) EntityInside(pos cube.Pos, tx *world.Tx, _ world.Entity) {
 	if !p.Powered {
 		p.Powered = true
 		tx.SetBlock(pos, p, nil)
 		tx.PlaySound(pos.Vec3Centre(), sound.PressurePlateClickOn{})
+		tx.ScheduleBlockUpdate(pos, p, time.Millisecond*500)
 	}
-	tx.ScheduleBlockUpdate(pos, p, time.Millisecond*500)
 }
 
 // ScheduledTick ...
@@ -543,14 +543,14 @@ func (p HeavyWeightedPressurePlate) RedstoneStrongPower(_ cube.Pos, _ *world.Tx,
 	return 0
 }
 
-// EntityStepOn ...
-func (p HeavyWeightedPressurePlate) EntityStepOn(pos cube.Pos, tx *world.Tx, _ world.Entity) {
+// EntityInside ...
+func (p HeavyWeightedPressurePlate) EntityInside(pos cube.Pos, tx *world.Tx, _ world.Entity) {
 	if !p.Powered {
 		p.Powered = true
 		tx.SetBlock(pos, p, nil)
 		tx.PlaySound(pos.Vec3Centre(), sound.PressurePlateClickOn{})
+		tx.ScheduleBlockUpdate(pos, p, time.Millisecond*500)
 	}
-	tx.ScheduleBlockUpdate(pos, p, time.Millisecond*500)
 }
 
 // ScheduledTick ...
@@ -614,4 +614,3 @@ func allHeavyWeightedPressurePlates() []world.Block {
 		HeavyWeightedPressurePlate{Powered: true},
 	}
 }
-

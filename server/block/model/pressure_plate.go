@@ -11,13 +11,10 @@ type PressurePlate struct {
 	Powered bool
 }
 
-// BBox returns the collision/bounding box of the pressure plate.
+// BBox returns no collision box: pressure plates are non-solid, entities rest on
+// whatever is beneath them.
 func (p PressurePlate) BBox(cube.Pos, world.BlockSource) []cube.BBox {
-	height := 1.0 / 16.0
-	if p.Powered {
-		height = 1.0 / 32.0
-	}
-	return []cube.BBox{cube.Box(1.0/16.0, 0, 1.0/16.0, 15.0/16.0, height, 15.0/16.0)}
+	return nil
 }
 
 // FaceSolid always returns false.
