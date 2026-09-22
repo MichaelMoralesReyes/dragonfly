@@ -743,10 +743,6 @@ func (p *Player) Hurt(dmg float64, src world.DamageSource) (float64, bool) {
 func (p *Player) applyTotemEffects() {
 	p.addHealth(2 - p.Health())
 
-	for _, e := range p.Effects() {
-		p.RemoveEffect(e.Type())
-	}
-
 	p.AddEffect(effect.New(effect.Regeneration, 2, time.Second*40))
 	p.AddEffect(effect.New(effect.FireResistance, 1, time.Second*40))
 	p.AddEffect(effect.New(effect.Absorption, 2, time.Second*5))
