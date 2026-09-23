@@ -651,6 +651,16 @@ func (p *Player) blocksUnder() (low, high cube.Pos) {
 	return low, high
 }
 
+// TotemPopped, if set, is called every time a Totem of Undying is actually
+// consumed by Hurt, i.e. after absorption has been subtracted, the damage
+// source has been checked with IgnoreTotem, and the totem has been removed
+// from the player's hand. Callers get an exact 1:1 count of real pops instead
+// of having to guess from the damage passed to Handler.HandleHurt, which is
+// called before absorption is applied and so cannot tell whether a hit would
+// really have been lethal. The callback runs inside the player's transaction
+// and must not block or call back into the world.
+var TotemPopped func(p *Player, src world.DamageSource)
+
 // Hurt hurts the player for a given amount of damage. The source passed
 // represents the cause of the damage, for example entity.AttackDamageSource if
 // the player is attacked by another entity. If the final damage exceeds the
@@ -694,10 +704,16 @@ func (p *Player) Hurt(dmg float64, src world.DamageSource) (float64, bool) {
 		if _, ok := offHand.Item().(item.Totem); ok {
 			p.applyTotemEffects()
 			p.SetHeldItems(hand, offHand.Grow(-1))
+			if TotemPopped != nil {
+				TotemPopped(p, src)
+			}
 			return 0, false
 		} else if _, ok := hand.Item().(item.Totem); ok {
 			p.applyTotemEffects()
 			p.SetHeldItems(hand.Grow(-1), offHand)
+			if TotemPopped != nil {
+				TotemPopped(p, src)
+			}
 			return 0, false
 		}
 	}
