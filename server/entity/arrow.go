@@ -42,7 +42,7 @@ var arrowConf = ProjectileBehaviourConfig{
 	Drag:                  0.01,
 	Damage:                2.0,
 	Sound:                 sound.ArrowHit{},
-	SurviveBlockCollision: true,
+	SurviveBlockCollision: false,
 }
 
 // boolByte returns 1 if the bool passed is true, or 0 if it is false.
