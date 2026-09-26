@@ -441,6 +441,18 @@ type Entity interface {
 	Rotation() cube.Rotation
 }
 
+// FakeSpectator may be implemented by an Entity that is acting as a
+// server-side "fake" spectator - i.e. it is logically spectating (noclip,
+// invisible, not participating in combat) but its GameMode is NOT a real
+// spectator mode. Projectiles and melee attacks skip any entity that
+// satisfies this interface, exactly as they would skip a true spectator,
+// without relying on GameMode().HasCollision().
+type FakeSpectator interface {
+	// IsFakeSpectating returns true when this entity is currently in the
+	// fake-spectate state and should be ignored by combat.
+	IsFakeSpectating() bool
+}
+
 // TickerEntity represents an Entity that has a Tick method which should be called every time the Entity is
 // ticked every 20th of a second.
 type TickerEntity interface {

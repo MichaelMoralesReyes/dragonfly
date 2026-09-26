@@ -9,6 +9,7 @@ import (
 	"slices"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/df-mc/dragonfly/server/block"
@@ -111,6 +112,12 @@ type playerData struct {
 	once sync.Once
 
 	prevWorld *world.World
+
+	// fakeSpectating is set to true while the player is in the server-side
+	// "fake spectator" state (noclip, invisible, still in Survival game mode).
+	// It satisfies the world.FakeSpectator interface so projectiles and melee
+	// attacks pass straight through without needing to touch GameMode.
+	fakeSpectating atomic.Bool
 }
 
 // Player is an implementation of a player entity. It has methods that implement the behaviour that players
@@ -153,6 +160,21 @@ func (p *Player) UUID() uuid.UUID {
 // authenticated with XBOX Live.
 func (p *Player) XUID() string {
 	return p.xuid
+}
+
+// IsFakeSpectating satisfies the world.FakeSpectator interface. It returns true
+// while the player is in the server-side fake-spectate state (noclip, invisible,
+// still in Survival game mode). While true, projectiles and melee attacks will
+// pass through this player as if they were a true spectator.
+func (p *Player) IsFakeSpectating() bool {
+	return p.fakeSpectating.Load()
+}
+
+// SetFakeSpectating marks or unmarks the player as a fake spectator. Call with
+// true when entering fake-spectate mode and false when leaving it.
+// This is goroutine-safe.
+func (p *Player) SetFakeSpectating(v bool) {
+	p.fakeSpectating.Store(v)
 }
 
 // DeviceID returns the device ID of the player. If the Player is not connected to a network session, an empty string is
@@ -1903,6 +1925,11 @@ func (p *Player) AttackEntity(e world.Entity) bool {
 
 	living, isLiving := e.(entity.Living)
 	if isLiving && living.Dead() {
+		return false
+	}
+	// Fake spectators (noclip/invisible players still in Survival mode) are
+	// combat-immune; treat them exactly like true spectators.
+	if fs, ok := e.(world.FakeSpectator); ok && fs.IsFakeSpectating() {
 		return false
 	}
 
