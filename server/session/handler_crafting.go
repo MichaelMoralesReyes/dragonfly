@@ -2,22 +2,23 @@ package session
 
 import (
 	"fmt"
+	"math"
+	"slices"
+
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/item/creative"
 	"github.com/df-mc/dragonfly/server/item/inventory"
 	"github.com/df-mc/dragonfly/server/item/recipe"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/sandertv/gophertunnel/minecraft/protocol"
-	"math"
-	"slices"
 )
 
 // handleCraft handles the CraftRecipe request action.
-func (h *ItemStackRequestHandler) handleCraft(a *protocol.CraftRecipeStackRequestAction, s *Session, tx *world.Tx) error {
+func (h *ItemStackRequestHandler) handleCraft(a *protocol.CraftRecipeStackRequestAction, s *Session, tx *world.Tx, c Controllable) error {
 	craft, ok := s.recipes[a.RecipeNetworkID]
 	if !ok {
 		// Try dynamic recipes if no static recipe matches
-		return h.tryDynamicCraft(s, tx, int(a.NumberOfCrafts))
+		return h.tryDynamicCraft(s, tx, int(a.NumberOfCrafts), c)
 	}
 	_, shaped := craft.(recipe.Shaped)
 	_, shapeless := craft.(recipe.Shapeless)
@@ -31,6 +32,9 @@ func (h *ItemStackRequestHandler) handleCraft(a *protocol.CraftRecipeStackReques
 	timesCrafted := int(a.NumberOfCrafts)
 	if timesCrafted < 1 {
 		return fmt.Errorf("times crafted must be at least 1")
+	}
+	if !c.Craft(craft) {
+		return fmt.Errorf("crafting was cancelled")
 	}
 
 	size := s.craftingSize()
@@ -68,11 +72,11 @@ func (h *ItemStackRequestHandler) handleCraft(a *protocol.CraftRecipeStackReques
 }
 
 // handleAutoCraft handles the AutoCraftRecipe request action.
-func (h *ItemStackRequestHandler) handleAutoCraft(a *protocol.AutoCraftRecipeStackRequestAction, s *Session, tx *world.Tx) error {
+func (h *ItemStackRequestHandler) handleAutoCraft(a *protocol.AutoCraftRecipeStackRequestAction, s *Session, tx *world.Tx, c Controllable) error {
 	craft, ok := s.recipes[a.RecipeNetworkID]
 	if !ok {
 		// Try dynamic recipes if no static recipe matches
-		return h.tryDynamicCraft(s, tx, int(a.NumberOfCrafts))
+		return h.tryDynamicCraft(s, tx, int(a.NumberOfCrafts), c)
 	}
 	_, shaped := craft.(recipe.Shaped)
 	_, shapeless := craft.(recipe.Shapeless)
@@ -86,6 +90,9 @@ func (h *ItemStackRequestHandler) handleAutoCraft(a *protocol.AutoCraftRecipeSta
 	timesCrafted := int(a.NumberOfCrafts)
 	if timesCrafted < 1 {
 		return fmt.Errorf("times crafted must be at least 1")
+	}
+	if !c.Craft(craft) {
+		return fmt.Errorf("crafting was cancelled")
 	}
 
 	flattenedInputs := make([]recipe.Item, 0, len(craft.Input()))
@@ -154,6 +161,9 @@ func (h *ItemStackRequestHandler) handleAutoCraft(a *protocol.AutoCraftRecipeSta
 func (h *ItemStackRequestHandler) handleCreativeCraft(a *protocol.CraftCreativeStackRequestAction, s *Session, tx *world.Tx, c Controllable) error {
 	if !c.GameMode().CreativeInventory() {
 		return fmt.Errorf("can only craft creative items in gamemode creative/spectator")
+	}
+	if !c.Craft(nil) {
+		return fmt.Errorf("crafting was cancelled")
 	}
 	index := a.CreativeItemNetworkID - 1
 	if int(index) >= len(creative.Items()) {
@@ -241,7 +251,7 @@ func grow(i recipe.Item, count int) recipe.Item {
 }
 
 // tryDynamicCraft attempts to match the items in the crafting grid with any registered dynamic recipes.
-func (h *ItemStackRequestHandler) tryDynamicCraft(s *Session, tx *world.Tx, timesCrafted int) error {
+func (h *ItemStackRequestHandler) tryDynamicCraft(s *Session, tx *world.Tx, timesCrafted int, c Controllable) error {
 	if timesCrafted < 1 {
 		return fmt.Errorf("times crafted must be at least 1")
 	}
@@ -270,6 +280,9 @@ func (h *ItemStackRequestHandler) tryDynamicCraft(s *Session, tx *world.Tx, time
 		output, ok := dynamicRecipe.Match(input)
 		if !ok {
 			continue
+		}
+		if !c.Craft(nil) {
+			return fmt.Errorf("crafting was cancelled")
 		}
 
 		// Found a matching dynamic recipe! Now validate ingredient counts and consume the items

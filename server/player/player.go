@@ -22,6 +22,7 @@ import (
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/item/enchantment"
 	"github.com/df-mc/dragonfly/server/item/inventory"
+	"github.com/df-mc/dragonfly/server/item/recipe"
 	"github.com/df-mc/dragonfly/server/player/bossbar"
 	"github.com/df-mc/dragonfly/server/player/chat"
 	"github.com/df-mc/dragonfly/server/player/debug"
@@ -2669,6 +2670,17 @@ func (p *Player) Drop(s item.Stack) int {
 	opts := world.EntitySpawnOpts{Position: p.Position().Add(mgl64.Vec3{0, 1.4}), Velocity: p.Rotation().Vec3().Mul(0.4)}
 	p.tx.AddEntity(entity.NewItemPickupDelay(opts, s, time.Second*2))
 	return s.Count()
+}
+
+// Craft dispatches HandleItemCraft to the player's Handler for the recipe r and reports whether the craft
+// should be allowed to proceed. r is nil if the craft was resolved through a dynamic recipe. If the Handler
+// cancels the context, Craft returns false and the caller must not consume any items or produce any output.
+func (p *Player) Craft(r recipe.Recipe) bool {
+	ctx := NewEventContext(p.tx, p)
+	if p.Handler().HandleItemCraft(ctx, r); ctx.Cancelled() {
+		return false
+	}
+	return true
 }
 
 // OpenBlockContainer opens a block container, such as a chest, at the position passed. If no container was

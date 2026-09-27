@@ -7,6 +7,7 @@ import (
 	"github.com/df-mc/dragonfly/server/block/cube"
 	"github.com/df-mc/dragonfly/server/cmd"
 	"github.com/df-mc/dragonfly/server/item"
+	"github.com/df-mc/dragonfly/server/item/recipe"
 	"github.com/df-mc/dragonfly/server/player/skin"
 	"github.com/df-mc/dragonfly/server/session"
 	"github.com/df-mc/dragonfly/server/world"
@@ -141,6 +142,11 @@ type Handler interface {
 	// HandleItemDrop handles the player dropping an item on the ground.
 	// ctx.Cancel() may be called to prevent the player from dropping the item.Stack passed on the ground.
 	HandleItemDrop(ctx *Context, s item.Stack)
+	// HandleItemCraft handles the player crafting a recipe, whether through the crafting grid in their
+	// inventory, a crafting table, or the recipe book/auto craft. ctx.Cancel() may be called to prevent the
+	// recipe from being crafted: no items will be consumed and no output will be created. r is the recipe
+	// being crafted, and is nil when the craft was resolved through a dynamic recipe rather than a static one.
+	HandleItemCraft(ctx *Context, r recipe.Recipe)
 	// HandleTransfer handles a player being transferred to another server. ctx.Cancel() may be called to
 	// cancel the transfer.
 	HandleTransfer(ctx *Context, addr *net.UDPAddr)
@@ -165,6 +171,7 @@ type NopHandler struct{}
 var _ Handler = NopHandler{}
 
 func (NopHandler) HandleItemDrop(*Context, item.Stack)                                     {}
+func (NopHandler) HandleItemCraft(*Context, recipe.Recipe)                                 {}
 func (NopHandler) HandleHeldSlotChange(*Context, int, int)                                 {}
 func (NopHandler) HandleMove(*Context, mgl64.Vec3, cube.Rotation)                          {}
 func (NopHandler) HandleJump(*Player)                                                      {}

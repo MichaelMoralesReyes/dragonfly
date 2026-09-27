@@ -6,6 +6,7 @@ import (
 	"github.com/df-mc/dragonfly/server/entity/effect"
 	"github.com/df-mc/dragonfly/server/item"
 	"github.com/df-mc/dragonfly/server/item/inventory"
+	"github.com/df-mc/dragonfly/server/item/recipe"
 	"github.com/df-mc/dragonfly/server/player/chat"
 	"github.com/df-mc/dragonfly/server/player/debug"
 	"github.com/df-mc/dragonfly/server/player/dialogue"
@@ -64,6 +65,9 @@ type Controllable interface {
 	Drop(s item.Stack) (n int)
 	SwingArm()
 	PunchAir()
+	// Craft reports whether a craft of the recipe r (nil for a dynamic recipe) should be allowed to
+	// proceed. It returns false if the Controllable's Handler cancelled the craft.
+	Craft(r recipe.Recipe) bool
 
 	Health() float64
 	MaxHealth() float64

@@ -2,6 +2,9 @@ package session
 
 import (
 	"fmt"
+	"math"
+	"time"
+
 	"github.com/df-mc/dragonfly/server/block"
 	"github.com/df-mc/dragonfly/server/entity"
 	"github.com/df-mc/dragonfly/server/event"
@@ -10,8 +13,6 @@ import (
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/sandertv/gophertunnel/minecraft/protocol"
 	"github.com/sandertv/gophertunnel/minecraft/protocol/packet"
-	"math"
-	"time"
 )
 
 // ItemStackRequestHandler handles the ItemStackRequest packet. It handles the actions done within the
@@ -102,9 +103,9 @@ func (h *ItemStackRequestHandler) handleRequest(req protocol.ItemStackRequest, s
 					break
 				}
 			}
-			err = h.handleCraft(a, s, tx)
+			err = h.handleCraft(a, s, tx, c)
 		case *protocol.AutoCraftRecipeStackRequestAction:
-			err = h.handleAutoCraft(a, s, tx)
+			err = h.handleAutoCraft(a, s, tx, c)
 		case *protocol.CraftRecipeOptionalStackRequestAction:
 			err = h.handleCraftRecipeOptional(a, s, req.FilterStrings, c, tx)
 		case *protocol.CraftLoomRecipeStackRequestAction:
