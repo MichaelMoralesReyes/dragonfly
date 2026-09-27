@@ -15,6 +15,17 @@ import (
 // PlayerAuthInputHandler handles the PlayerAuthInput packet.
 type PlayerAuthInputHandler struct{}
 
+// RejectedFlyStartOverride, if non-nil, is called whenever a client sends
+// InputFlagStartFlying but c.GameMode() doesn't allow flying. Normally this
+// path unconditionally sends a corrective SendAbilities, which rebuilds the
+// entire ability set from GameMode alone and marks every bit authoritative -
+// wiping out any additional ability bits (e.g. NoClip) an application may
+// have granted via its own raw UpdateAbilities packet outside of GameMode,
+// since dragonfly has no way to know about them. If this override is set and
+// returns true, the default SendAbilities correction is skipped so the
+// application can send its own replacement instead.
+var RejectedFlyStartOverride func(c Controllable) bool
+
 // Handle ...
 func (h PlayerAuthInputHandler) Handle(p packet.Packet, s *Session, tx *world.Tx, c Controllable) error {
 	pk := p.(*packet.PlayerAuthInput)
@@ -150,8 +161,13 @@ func (h PlayerAuthInputHandler) handleInputFlags(flags protocol.InputFlags, s *S
 	}
 	if flags.Load(packet.InputFlagStartFlying) {
 		if !c.GameMode().AllowsFlying() {
-			s.conf.Log.Debug("process packet: PlayerAuthInput: flying flag enabled while unable to fly")
-			s.SendAbilities(c)
+			if RejectedFlyStartOverride != nil && RejectedFlyStartOverride(c) {
+				// Application supplied its own correction; skip the default
+				// GameMode-derived one.
+			} else {
+				s.conf.Log.Debug("process packet: PlayerAuthInput: flying flag enabled while unable to fly")
+				s.SendAbilities(c)
+			}
 		} else {
 			c.StartFlying()
 		}
