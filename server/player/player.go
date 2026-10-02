@@ -2380,6 +2380,32 @@ func (p *Player) teleport(pos mgl64.Vec3) {
 	p.ResetFallDistance()
 }
 
+// SmoothTeleport moves the player to pos like Teleport, but without the
+// client-side snap: the player's own client is sent a normal-mode move (see
+// session.ViewSmoothMove) so it slides to pos, and every other viewer gets an
+// ordinary non-teleport movement update so they see the player slide too.
+// Server-side state (position, velocity, fall distance) changes immediately,
+// exactly as with Teleport, and the Handler's HandleTeleport is still called.
+func (p *Player) SmoothTeleport(pos mgl64.Vec3) {
+	ctx := NewEventContext(p.tx, p)
+	if p.Handler().HandleTeleport(ctx, pos); ctx.Cancelled() {
+		return
+	}
+	p.Wake()
+
+	rot, onGround := p.Rotation(), p.OnGround()
+	for _, v := range p.viewers() {
+		if s, ok := v.(*session.Session); ok && p.s != nil && s == p.s {
+			s.ViewSmoothMove(p, pos)
+			continue
+		}
+		v.ViewEntityMovement(p, pos, rot, onGround)
+	}
+	p.data.Pos = pos
+	p.data.Vel = mgl64.Vec3{}
+	p.ResetFallDistance()
+}
+
 // Move moves the player from one position to another in the world, by adding the delta passed to the current
 // position of the player.
 // Move also rotates the player, adding deltaYaw and deltaPitch to the respective values.

@@ -288,6 +288,43 @@ func (s *Session) ViewEntityTeleport(e world.Entity, position mgl64.Vec3) {
 	})
 }
 
+// ViewSmoothMove moves the session's own entity to position by sending a
+// MovePlayer packet in MoveModeNormal rather than MoveModeTeleport (which is
+// what ViewEntityTeleport sends). The client snaps instantly on a teleport but
+// interpolates a normal move, so the player slides to the new position instead
+// of jumping there. Only the session's own entity is affected; any other
+// entity is ignored.
+//
+// Like ViewEntityTeleport it records the position in teleportPos, so the
+// client's in-flight movement inputs (which are still near the old position
+// while it interpolates) are ignored by the server until the client has
+// arrived, instead of dragging the server-side position back.
+func (s *Session) ViewSmoothMove(e world.Entity, position mgl64.Vec3) {
+	id := s.entityRuntimeID(e)
+	if id != selfEntityRuntimeID {
+		return
+	}
+
+	yaw, pitch := e.Rotation().Elem()
+	onGround := false
+	if g, ok := e.(interface{ OnGround() bool }); ok {
+		onGround = g.OnGround()
+	}
+
+	s.teleportPos.Store(&position)
+
+	s.writePacket(&packet.SetActorMotion{EntityRuntimeID: id})
+	s.writePacket(&packet.MovePlayer{
+		EntityRuntimeID: id,
+		Position:        vec64To32(position.Add(entityOffset(e))),
+		Pitch:           float32(pitch),
+		Yaw:             float32(yaw),
+		HeadYaw:         float32(yaw),
+		Mode:            packet.MoveModeNormal,
+		OnGround:        onGround,
+	})
+}
+
 // ViewEntityItems ...
 func (s *Session) ViewEntityItems(e world.Entity) {
 	runtimeID := s.entityRuntimeID(e)
