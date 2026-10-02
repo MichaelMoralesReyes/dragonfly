@@ -3313,7 +3313,6 @@ func (p *Player) PunchAir() {
 		return
 	}
 	p.SwingArm()
-	p.tx.PlaySound(p.Position(), sound.Attack{})
 }
 
 // UpdateDiagnostics updates the diagnostics of the player.
