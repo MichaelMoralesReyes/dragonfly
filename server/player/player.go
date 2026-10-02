@@ -1962,8 +1962,7 @@ func (p *Player) AttackEntity(e world.Entity) bool {
 		if durable, ok := i.Item().(item.Durable); ok {
 			p.SetHeldItems(p.damageItem(i, durable.DurabilityInfo().AttackDurability), left)
 		}
-		n, vulnerable, _ := entity.HurtEntity(e, i.AttackDamage(), entity.AttackDamageSource{Attacker: p})
-		p.tx.PlaySound(entity.EyePosition(e), sound.Attack{Damage: !mgl64.FloatEqual(n, 0)})
+		_, vulnerable, _ := entity.HurtEntity(e, i.AttackDamage(), entity.AttackDamageSource{Attacker: p})
 		if vulnerable {
 			p.Exhaust(0.1)
 		}
@@ -1987,14 +1986,13 @@ func (p *Player) AttackEntity(e world.Entity) bool {
 		dmg *= 1.5
 	}
 
-	n, vulnerable := living.Hurt(dmg, entity.AttackDamageSource{Attacker: p})
+	_, vulnerable := living.Hurt(dmg, entity.AttackDamageSource{Attacker: p})
 	i, left := p.HeldItems()
 
 	if durable, ok := i.Item().(item.Durable); ok {
 		p.SetHeldItems(p.damageItem(i, durable.DurabilityInfo().AttackDurability), left)
 	}
 
-	p.tx.PlaySound(entity.EyePosition(e), sound.Attack{Damage: !mgl64.FloatEqual(n, 0)})
 	if !vulnerable {
 		return true
 	}

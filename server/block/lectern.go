@@ -107,7 +107,6 @@ func (l Lectern) Punch(pos cube.Pos, _ cube.Face, tx *world.Tx, _ item.User) {
 
 	l.Book = item.Stack{}
 	tx.SetBlock(pos, l, nil)
-	tx.PlaySound(pos.Vec3Centre(), sound.Attack{})
 }
 
 // TurnPage updates the page the lectern is currently on to the page given.

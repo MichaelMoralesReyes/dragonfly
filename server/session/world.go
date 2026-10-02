@@ -984,11 +984,17 @@ func (s *Session) PlaySound(t world.Sound, pos mgl64.Vec3) {
 	if s == Nop {
 		return
 	}
+	if _, ok := t.(sound.Attack); ok {
+		return
+	}
 	s.playSound(pos, t, true)
 }
 
 // ViewSound ...
 func (s *Session) ViewSound(pos mgl64.Vec3, soundType world.Sound) {
+	if _, ok := soundType.(sound.Attack); ok {
+		return
+	}
 	s.playSound(pos, soundType, false)
 }
 

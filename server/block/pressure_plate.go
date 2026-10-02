@@ -85,8 +85,8 @@ func (p WoodPressurePlate) RedstoneStrongPower(_ cube.Pos, _ *world.Tx, face cub
 }
 
 // EntityInside ...
-func (p WoodPressurePlate) EntityInside(pos cube.Pos, tx *world.Tx, _ world.Entity) {
-	if !p.Powered {
+func (p WoodPressurePlate) EntityInside(pos cube.Pos, tx *world.Tx, e world.Entity) {
+	if !p.Powered && pressurePlateTouching(pos, e) {
 		p.Powered = true
 		tx.SetBlock(pos, p, nil)
 		tx.PlaySound(pos.Vec3Centre(), sound.PressurePlateClickOn{})
@@ -99,12 +99,9 @@ func (p WoodPressurePlate) ScheduledTick(pos cube.Pos, tx *world.Tx, _ *rand.Ran
 	if !p.Powered {
 		return
 	}
-	detectBox := cube.Box(1.0/16.0, 0, 1.0/16.0, 15.0/16.0, 0.25, 15.0/16.0).Translate(pos.Vec3())
-	for e := range tx.EntitiesWithin(detectBox) {
-		if detectBox.Vec3Within(e.Position()) {
-			tx.ScheduleBlockUpdate(pos, p, time.Millisecond*500)
-			return
-		}
+	if pressurePlatePressed(pos, tx) {
+		tx.ScheduleBlockUpdate(pos, p, time.Millisecond*500)
+		return
 	}
 	p.Powered = false
 	tx.SetBlock(pos, p, nil)
@@ -205,8 +202,8 @@ func (p StonePressurePlate) RedstoneStrongPower(_ cube.Pos, _ *world.Tx, face cu
 }
 
 // EntityInside ...
-func (p StonePressurePlate) EntityInside(pos cube.Pos, tx *world.Tx, _ world.Entity) {
-	if !p.Powered {
+func (p StonePressurePlate) EntityInside(pos cube.Pos, tx *world.Tx, e world.Entity) {
+	if !p.Powered && pressurePlateTouching(pos, e) {
 		p.Powered = true
 		tx.SetBlock(pos, p, nil)
 		tx.PlaySound(pos.Vec3Centre(), sound.PressurePlateClickOn{})
@@ -219,12 +216,9 @@ func (p StonePressurePlate) ScheduledTick(pos cube.Pos, tx *world.Tx, _ *rand.Ra
 	if !p.Powered {
 		return
 	}
-	detectBox := cube.Box(1.0/16.0, 0, 1.0/16.0, 15.0/16.0, 0.25, 15.0/16.0).Translate(pos.Vec3())
-	for e := range tx.EntitiesWithin(detectBox) {
-		if detectBox.Vec3Within(e.Position()) {
-			tx.ScheduleBlockUpdate(pos, p, time.Millisecond*500)
-			return
-		}
+	if pressurePlatePressed(pos, tx) {
+		tx.ScheduleBlockUpdate(pos, p, time.Millisecond*500)
+		return
 	}
 	p.Powered = false
 	tx.SetBlock(pos, p, nil)
@@ -318,8 +312,8 @@ func (p PolishedBlackstonePressurePlate) RedstoneStrongPower(_ cube.Pos, _ *worl
 }
 
 // EntityInside ...
-func (p PolishedBlackstonePressurePlate) EntityInside(pos cube.Pos, tx *world.Tx, _ world.Entity) {
-	if !p.Powered {
+func (p PolishedBlackstonePressurePlate) EntityInside(pos cube.Pos, tx *world.Tx, e world.Entity) {
+	if !p.Powered && pressurePlateTouching(pos, e) {
 		p.Powered = true
 		tx.SetBlock(pos, p, nil)
 		tx.PlaySound(pos.Vec3Centre(), sound.PressurePlateClickOn{})
@@ -332,12 +326,9 @@ func (p PolishedBlackstonePressurePlate) ScheduledTick(pos cube.Pos, tx *world.T
 	if !p.Powered {
 		return
 	}
-	detectBox := cube.Box(1.0/16.0, 0, 1.0/16.0, 15.0/16.0, 0.25, 15.0/16.0).Translate(pos.Vec3())
-	for e := range tx.EntitiesWithin(detectBox) {
-		if detectBox.Vec3Within(e.Position()) {
-			tx.ScheduleBlockUpdate(pos, p, time.Millisecond*500)
-			return
-		}
+	if pressurePlatePressed(pos, tx) {
+		tx.ScheduleBlockUpdate(pos, p, time.Millisecond*500)
+		return
 	}
 	p.Powered = false
 	tx.SetBlock(pos, p, nil)
@@ -431,8 +422,8 @@ func (p LightWeightedPressurePlate) RedstoneStrongPower(_ cube.Pos, _ *world.Tx,
 }
 
 // EntityInside ...
-func (p LightWeightedPressurePlate) EntityInside(pos cube.Pos, tx *world.Tx, _ world.Entity) {
-	if !p.Powered {
+func (p LightWeightedPressurePlate) EntityInside(pos cube.Pos, tx *world.Tx, e world.Entity) {
+	if !p.Powered && pressurePlateTouching(pos, e) {
 		p.Powered = true
 		tx.SetBlock(pos, p, nil)
 		tx.PlaySound(pos.Vec3Centre(), sound.PressurePlateClickOn{})
@@ -445,12 +436,9 @@ func (p LightWeightedPressurePlate) ScheduledTick(pos cube.Pos, tx *world.Tx, _ 
 	if !p.Powered {
 		return
 	}
-	detectBox := cube.Box(1.0/16.0, 0, 1.0/16.0, 15.0/16.0, 0.25, 15.0/16.0).Translate(pos.Vec3())
-	for e := range tx.EntitiesWithin(detectBox) {
-		if detectBox.Vec3Within(e.Position()) {
-			tx.ScheduleBlockUpdate(pos, p, time.Millisecond*500)
-			return
-		}
+	if pressurePlatePressed(pos, tx) {
+		tx.ScheduleBlockUpdate(pos, p, time.Millisecond*500)
+		return
 	}
 	p.Powered = false
 	tx.SetBlock(pos, p, nil)
@@ -544,8 +532,8 @@ func (p HeavyWeightedPressurePlate) RedstoneStrongPower(_ cube.Pos, _ *world.Tx,
 }
 
 // EntityInside ...
-func (p HeavyWeightedPressurePlate) EntityInside(pos cube.Pos, tx *world.Tx, _ world.Entity) {
-	if !p.Powered {
+func (p HeavyWeightedPressurePlate) EntityInside(pos cube.Pos, tx *world.Tx, e world.Entity) {
+	if !p.Powered && pressurePlateTouching(pos, e) {
 		p.Powered = true
 		tx.SetBlock(pos, p, nil)
 		tx.PlaySound(pos.Vec3Centre(), sound.PressurePlateClickOn{})
@@ -558,12 +546,9 @@ func (p HeavyWeightedPressurePlate) ScheduledTick(pos cube.Pos, tx *world.Tx, _ 
 	if !p.Powered {
 		return
 	}
-	detectBox := cube.Box(1.0/16.0, 0, 1.0/16.0, 15.0/16.0, 0.25, 15.0/16.0).Translate(pos.Vec3())
-	for e := range tx.EntitiesWithin(detectBox) {
-		if detectBox.Vec3Within(e.Position()) {
-			tx.ScheduleBlockUpdate(pos, p, time.Millisecond*500)
-			return
-		}
+	if pressurePlatePressed(pos, tx) {
+		tx.ScheduleBlockUpdate(pos, p, time.Millisecond*500)
+		return
 	}
 	p.Powered = false
 	tx.SetBlock(pos, p, nil)
@@ -613,4 +598,30 @@ func allHeavyWeightedPressurePlates() []world.Block {
 		HeavyWeightedPressurePlate{Powered: false},
 		HeavyWeightedPressurePlate{Powered: true},
 	}
+}
+
+// pressurePlateDetectBox returns the area above the pressure plate at the position passed that an entity's
+// bounding box must overlap to hold the plate down.
+func pressurePlateDetectBox(pos cube.Pos) cube.BBox {
+	return cube.Box(1.0/16.0, 0, 1.0/16.0, 15.0/16.0, 0.25, 15.0/16.0).Translate(pos.Vec3())
+}
+
+// pressurePlateTouching checks if the bounding box of the entity passed overlaps the detection area of the
+// pressure plate at the position passed. Pressing and releasing a plate both use this check, so a plate can
+// never be released while the entity that pressed it is still touching it.
+func pressurePlateTouching(pos cube.Pos, e world.Entity) bool {
+	return e.H().Type().BBox(e).Translate(e.Position()).IntersectsWith(pressurePlateDetectBox(pos))
+}
+
+// pressurePlatePressed checks if any entity is currently touching the pressure plate at the position passed.
+func pressurePlatePressed(pos cube.Pos, tx *world.Tx) bool {
+	// EntitiesWithin only yields entities whose position (their feet) lies inside the box, so the search area
+	// is grown to also find entities whose bounding box overlaps the plate while their feet are outside of it.
+	search := pressurePlateDetectBox(pos).GrowVec3(mgl64.Vec3{1, 3, 1})
+	for e := range tx.EntitiesWithin(search) {
+		if pressurePlateTouching(pos, e) {
+			return true
+		}
+	}
+	return false
 }
