@@ -1402,9 +1402,22 @@ func (s *Session) ViewEmote(player world.Entity, emote uuid.UUID) {
 // ViewSkin ...
 func (s *Session) ViewSkin(e world.Entity) {
 	if v, ok := e.(Controllable); ok {
+		sk := skinToProtocol(v.Skin())
+		s.conf.Log.Info("ViewSkin: sending PlayerSkin",
+			"recipient", s.conn.IdentityData().DisplayName,
+			"skin_owner", v.UUID().String(),
+			"is_self", e.H() == s.ent,
+			"persona", sk.PersonaSkin,
+			"cape_w", sk.CapeImageWidth,
+			"cape_h", sk.CapeImageHeight,
+			"cape_bytes", len(sk.CapeData),
+			"skin_id", sk.SkinID,
+			"cape_id", sk.CapeID,
+			"full_id", sk.FullID,
+		)
 		s.writePacket(&packet.PlayerSkin{
 			UUID: v.UUID(),
-			Skin: skinToProtocol(v.Skin()),
+			Skin: sk,
 		})
 	}
 }
