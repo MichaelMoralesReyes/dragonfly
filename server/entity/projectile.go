@@ -17,6 +17,25 @@ import (
 	"github.com/go-gl/mathgl/mgl64"
 )
 
+// ProjectileTick, if set, is called on every in-flight tick of any projectile.
+// It is called with the projectile Ent, current world.Tx, and the owner EntityHandle (which may be nil).
+var ProjectileTick func(e *Ent, tx *world.Tx, owner *world.EntityHandle)
+
+// IsProjectile reports whether an entity has a ProjectileBehaviour.
+func IsProjectile(e world.Entity) bool {
+	ent, ok := e.(*Ent)
+	if !ok {
+		return false
+	}
+	if _, ok := ent.Behaviour().(*ProjectileBehaviour); ok {
+		return true
+	}
+	if p, ok := ent.Behaviour().(interface{ ProjectileBehaviour() *ProjectileBehaviour }); ok && p.ProjectileBehaviour() != nil {
+		return true
+	}
+	return false
+}
+
 // ProjectileBehaviourConfig allows the configuration of projectiles. Calling
 // ProjectileBehaviourConfig.New() creates a ProjectileBehaviour using these
 // settings.
@@ -139,6 +158,11 @@ func (lt *ProjectileBehaviour) Owner() *world.EntityHandle {
 	return lt.conf.Owner
 }
 
+// ProjectileBehaviour returns the ProjectileBehaviour itself.
+func (lt *ProjectileBehaviour) ProjectileBehaviour() *ProjectileBehaviour {
+	return lt
+}
+
 // Explode adds velocity to a projectile to blast it away from the explosion's
 // source.
 func (lt *ProjectileBehaviour) Explode(e *Ent, src world.ExplosionSource, impact float64) {
@@ -191,6 +215,9 @@ func (lt *ProjectileBehaviour) Tick(e *Ent, tx *world.Tx) *Movement {
 	if result == nil {
 		if lt.conf.Trail != nil {
 			lt.conf.Trail(e, tx)
+		}
+		if ProjectileTick != nil {
+			ProjectileTick(e, tx, lt.conf.Owner)
 		}
 		return m
 	}
