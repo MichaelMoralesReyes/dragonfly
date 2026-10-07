@@ -60,6 +60,12 @@ type ProjectileBehaviourConfig struct {
 	// or trace.BlockResult. Hit may be set to run additional behaviour when a
 	// projectile hits a target.
 	Hit func(e *Ent, tx *world.Tx, target trace.Result)
+	// Trail is an optional function called every tick while the projectile is
+	// in flight (before it has collided). It receives the projectile Ent and
+	// the current world.Tx so that callers can spawn particles or play sounds
+	// at the projectile's position. Trail is never called after the first
+	// collision.
+	Trail func(e *Ent, tx *world.Tx)
 	// SurviveBlockCollision specifies if a projectile with this
 	// ProjectileBehaviour should survive collision with a block. If set to
 	// false, the projectile will break when hitting a block (like a snowball).
@@ -183,6 +189,9 @@ func (lt *ProjectileBehaviour) Tick(e *Ent, tx *world.Tx) *Movement {
 	lt.collisionPos, lt.collided, lt.ageCollided = cube.Pos{}, false, 0
 
 	if result == nil {
+		if lt.conf.Trail != nil {
+			lt.conf.Trail(e, tx)
+		}
 		return m
 	}
 
