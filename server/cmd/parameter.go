@@ -40,6 +40,15 @@ type Enum interface {
 	Options(source Source) []string
 }
 
+// DynamicEnum is an interface for enum-type parameters whose options can change dynamically
+// during runtime (e.g. online player lists or game rotations). When an enum implements DynamicEnum
+// (or returns true from Dynamic()), it is immediately registered as a soft enum (CommandArgSoftEnum)
+// on initial command sending rather than waiting for an in-game option change to be detected.
+type DynamicEnum interface {
+	Enum
+	Dynamic() bool
+}
+
 // ParamDescriber may be implemented by a Runnable to programmatically describe its parameters
 // without relying on struct field reflection.
 type ParamDescriber interface {

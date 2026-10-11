@@ -106,6 +106,19 @@ func BuildAvailableCommands(
 					if len(enum.Options) > 0 || enum.Type != "" {
 						_, dynamic := softEnums[enum.Type]
 						if !dynamic {
+							if d, ok := paramInfo.Value.(cmd.DynamicEnum); ok && d.Dynamic() {
+								dynamic = true
+								if softEnums != nil {
+									softEnums[enum.Type] = struct{}{}
+								}
+							} else if d, ok := paramInfo.Value.(interface{ Dynamic() bool }); ok && d.Dynamic() {
+								dynamic = true
+								if softEnums != nil {
+									softEnums[enum.Type] = struct{}{}
+								}
+							}
+						}
+						if !dynamic {
 							index, ok := enumIndices[enum.Type]
 							if !ok {
 								index = uint32(len(enums))
