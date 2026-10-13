@@ -1,9 +1,10 @@
 package item
 
 import (
+	"time"
+
 	"github.com/df-mc/dragonfly/server/entity/effect"
 	"github.com/df-mc/dragonfly/server/world"
-	"time"
 )
 
 // GoldenApple is a special food item that bestows beneficial effects.
@@ -24,7 +25,7 @@ func (e GoldenApple) Consume(_ *world.Tx, c Consumer) Stack {
 	c.Saturate(4, 9.6)
 	prev := c.Absorption()
 	c.AddEffect(effect.New(effect.Absorption, 1, 2*time.Minute))
-c.SetAbsorption(max(prev, 4))
+	c.SetAbsorption(max(prev, 4))
 	c.AddEffect(effect.New(effect.Regeneration, 2, 5*time.Second))
 	return Stack{}
 }
