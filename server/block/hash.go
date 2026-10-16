@@ -707,7 +707,7 @@ func (i IronOre) Hash() (uint64, uint64) {
 }
 
 func (i ItemFrame) Hash() (uint64, uint64) {
-	return hashItemFrame, uint64(i.Facing) | uint64(boolByte(i.Glowing))<<3
+	return hashItemFrame, uint64(i.Facing) | uint64(boolByte(i.Glowing))<<3 | uint64(boolByte(i.Map))<<4
 }
 
 func (Jukebox) Hash() (uint64, uint64) {

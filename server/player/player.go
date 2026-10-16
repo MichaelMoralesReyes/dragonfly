@@ -3,6 +3,7 @@ package player
 import (
 	"errors"
 	"fmt"
+	"image/color"
 	"math"
 	"math/rand/v2"
 	"net"
@@ -298,6 +299,12 @@ func (p *Player) SendJukeboxPopup(a ...any) {
 // loading.
 func (p *Player) SendToast(title, message string) {
 	p.session().SendToast(title, message)
+}
+
+// SendMapData sends the pixels of the map with the ID passed to the player. pixels must hold exactly 128*128
+// colours, row by row.
+func (p *Player) SendMapData(id int64, pixels []color.RGBA) {
+	p.session().SendMapData(id, pixels)
 }
 
 // ResetFallDistance resets the player's fall distance.

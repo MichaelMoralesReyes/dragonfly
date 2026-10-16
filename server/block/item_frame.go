@@ -28,17 +28,23 @@ type ItemFrame struct {
 	DropChance float64
 	// Glowing makes the frame the glowing variant.
 	Glowing bool
+	// Map is true if the frame holds a filled map. It selects the map variant of the frame block state and must
+	// be set to true whenever Item is an item.FilledMap.
+	Map bool
 }
 
 // Activate ...
 func (i ItemFrame) Activate(pos cube.Pos, _ cube.Face, tx *world.Tx, u item.User, ctx *item.UseContext) bool {
 	if !i.Item.Empty() {
-		// TODO: Item frames with maps can only be rotated four times.
+		if i.Map {
+			// Frames holding a map are locked: they cannot be rotated.
+			return true
+		}
 		i.Rotations = (i.Rotations + 1) % 8
 		tx.PlaySound(pos.Vec3Centre(), sound.ItemFrameRotate{})
 	} else if held, _ := u.HeldItems(); !held.Empty() {
 		i.Item = held.Grow(-held.Count() + 1)
-		// TODO: When maps are implemented, check the item is a map, and if so, display the large version of the frame.
+		_, i.Map = i.Item.Item().(item.FilledMap)
 		ctx.SubtractFromCount(1)
 		tx.PlaySound(pos.Vec3Centre(), sound.ItemAdd{})
 	} else {
@@ -51,7 +57,8 @@ func (i ItemFrame) Activate(pos cube.Pos, _ cube.Face, tx *world.Tx, u item.User
 
 // Punch ...
 func (i ItemFrame) Punch(pos cube.Pos, _ cube.Face, tx *world.Tx, u item.User) {
-	if i.Item.Empty() {
+	if i.Item.Empty() || i.Map {
+		// Frames holding a map are locked: the map cannot be punched out.
 		return
 	}
 
@@ -109,7 +116,7 @@ func (i ItemFrame) EncodeBlock() (name string, properties map[string]any) {
 	}
 	return name, map[string]any{
 		"facing_direction":     int32(i.Facing.Opposite()),
-		"item_frame_map_bit":   uint8(0), // TODO: When maps are added, set this to true if the item is a map.
+		"item_frame_map_bit":   boolByte(i.Map),
 		"item_frame_photo_bit": uint8(0), // Only implemented in Education Edition.
 	}
 }
@@ -119,6 +126,7 @@ func (i ItemFrame) DecodeNBT(data map[string]any) any {
 	i.DropChance = float64(nbtconv.Float32(data, "ItemDropChance"))
 	i.Rotations = int(nbtconv.Uint8(data, "ItemRotation"))
 	i.Item = item.MapNBT(data, "Item")
+	_, i.Map = i.Item.Item().(item.FilledMap)
 	return i
 }
 
@@ -164,6 +172,8 @@ func allItemFrames() (frames []world.Block) {
 	for _, f := range cube.Faces() {
 		frames = append(frames, ItemFrame{Facing: f, Glowing: true})
 		frames = append(frames, ItemFrame{Facing: f, Glowing: false})
+		frames = append(frames, ItemFrame{Facing: f, Glowing: true, Map: true})
+		frames = append(frames, ItemFrame{Facing: f, Glowing: false, Map: true})
 	}
 	return
 }
