@@ -14,6 +14,9 @@ type Wool struct {
 	Colour item.Colour
 }
 
+// Wool ...
+func (Wool) Wool() {}
+
 // Instrument ...
 func (w Wool) Instrument() sound.Instrument {
 	return sound.Guitar()
